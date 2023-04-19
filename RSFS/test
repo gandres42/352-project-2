@@ -1,0 +1,8 @@
+#!/bin/bash
+if cmp --silent sample_output.txt output.txt
+then
+    echo "[TEST PASS]"
+    rm output.txt
+else
+    echo "[TEST FAIL]"
+fi
