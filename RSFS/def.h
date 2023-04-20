@@ -22,7 +22,7 @@
 #define RSFS_SEEK_CUR 1 //a value for whence in RSFS_fseek()
 #define RSFS_SEEK_END 2 //a value for whence in RSFS_fseek()
 
-#define DEBUG 1 //1-enable debug, 0-disable debug prints
+#define DEBUG 0 //1-enable debug, 0-disable debug prints
 
 //directory entry
 struct dir_entry{

@@ -38,7 +38,8 @@ int allocate_open_file_entry(int access_flag, struct dir_entry *dir_entry){
 
 
 //free the open file entry at index fd 
-void free_open_file_entry(int fd){
+void free_open_file_entry(int fd)
+{
     pthread_mutex_lock(&open_file_table_mutex);
     open_file_table[fd].used=0;
     pthread_mutex_unlock(&open_file_table_mutex);

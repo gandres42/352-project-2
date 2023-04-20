@@ -15,8 +15,8 @@ pthread_mutex_t inode_bitmap_mutex;
 
 //to allocate an empty inode and return the inode-number; 
 //if no free inode is available, return -1
-int allocate_inode(){
-
+int allocate_inode()
+{
     int inode_number=-1; //init 
 
     pthread_mutex_lock(&inode_bitmap_mutex);

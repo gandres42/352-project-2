@@ -94,8 +94,6 @@ int RSFS_create(char *file_name){
     }
 }
 
-
-
 //open a file with RSFS_RDONLY or RSFS_RDWR flags
 //return the file descriptor (i.e., the index of the open file entry in the open file table) if succeed, or -1 in case of error
 int RSFS_open(char *file_name, int access_flag){
@@ -123,11 +121,7 @@ int RSFS_open(char *file_name, int access_flag){
 int RSFS_read(int fd, void *buf, int size)
 {
     //sanity test of fd and size
-    if (fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used)
-    {
-        return -1;
-    }
-    if (size < 0)
+    if (fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used || size < 0)
     {
         return -1;
     }
@@ -146,16 +140,24 @@ int RSFS_read(int fd, void *buf, int size)
     //copy data from the data block(s) to buf and update current position
     for (int i = 0; i < min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position); i++)
     {
-        int * pos = mynode->block[(int)((i + myentry->position)/NUM_DBLOCKS)] + (i + myentry->position % NUM_DBLOCKS);
-        memcpy(pos, buf + i, 1);
+        int block = (i + myentry->position)/NUM_DBLOCKS;
+        int offset = (i + myentry->position) % NUM_DBLOCKS;
+        
+        if (mynode->block[block] == -1)
+        {
+            mynode->block[block] = (int *)malloc(NUM_DBLOCKS);
+        }
+        int * pos = mynode->block[block];
+        memcpy(buf + i, mynode->block[block] + offset, 1);
     }
-    myentry->position += min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    int read_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    myentry->position += read_delta;
     
     //unlock the open file entry
     pthread_mutex_unlock(&myentry->entry_mutex);
 
     //return the current position
-    return myentry->position - rig_pos;
+    return read_delta;
 }
 
 //write file: write size bytes from buf to the file with fd
@@ -163,11 +165,7 @@ int RSFS_read(int fd, void *buf, int size)
 int RSFS_write(int fd, void *buf, int size)
 {
     //sanity test of fd and size
-    if (fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used)
-    {
-        return -1;
-    }
-    if (size < 0)
+    if (fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used || size < 0)
     {
         return -1;
     }
@@ -186,26 +184,29 @@ int RSFS_write(int fd, void *buf, int size)
     //new data blocks may be allocated for the file if needed
     for (int i = 0; i < min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position); i++)
     {
-        // printf("%d\n", (int)((i + myentry->position)/NUM_DBLOCKS));
-        if (mynode->block[(int)((i + myentry->position)/NUM_DBLOCKS)] == -1)
+        int block = (i + myentry->position)/NUM_DBLOCKS;
+        int offset = (i + myentry->position) % NUM_DBLOCKS;
+        
+        if (mynode->block[block] == -1)
         {
-            mynode->block[(i + myentry->position)/NUM_DBLOCKS] = (int *)malloc(NUM_DBLOCKS);
+            mynode->block[block] = (int *)malloc(NUM_DBLOCKS);
         }
-        int * pos = mynode->block[(i + myentry->position)/NUM_DBLOCKS];
-        printf("%p\n", pos);
-        printf("%d\n", i + myentry->position % NUM_DBLOCKS);
-        printf("%d\n", *(pos + (i + myentry->position % NUM_DBLOCKS)));
+        int * pos = mynode->block[block];
+        memcpy(mynode->block[block] + offset, buf + i, 1);
     }
-    myentry->position += min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    int size_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    myentry->position += size_delta;
+    mynode->length += size_delta;
 
     //unlock the open file entry
     pthread_mutex_unlock(&myentry->entry_mutex);
 
     //return the current position
-    return myentry->position;
+    return size_delta;
 }
 
-//update current position: return the current position; if the position is not updated, return the original position
+//update current position: return the current position
+// if the position is not updated, return the original position
 //if whence == RSFS_SEEK_SET, change the position to offset
 //if whence == RSFS_SEEK_CUR, change the position to position+offset
 //if whence == RSFS_SEEK_END, change hte position to END-OF-FILE-Position + offset
@@ -213,33 +214,57 @@ int RSFS_write(int fd, void *buf, int size)
 int RSFS_fseek(int fd, int offset, int whence){
 
     //sanity test of fd and whence    
+    if ((fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used) || (whence != RSFS_SEEK_SET && whence != RSFS_SEEK_CUR && whence != RSFS_SEEK_END))
+    {
+        return -1;
+    }
 
     //get the open file entry of fd
+    struct open_file_entry * myentry = &open_file_table[fd];
     
     //lock the entry
+    pthread_mutex_lock(&myentry->entry_mutex);
     
     //get the current position
+    int pos = myentry->position;
     
-    //get the dir entry
-    
+    //get the dir entry    
     //get the inode 
+    struct inode * mynode = &inodes[myentry->dir_entry->inode_number];
 
     //change the position
+    switch(whence) 
+    {
+        case RSFS_SEEK_SET:
+            myentry->position = offset;
+            break;
+        case RSFS_SEEK_CUR:
+            myentry->position += offset;
+            break;
+        case RSFS_SEEK_END:
+            myentry->position = mynode->length + offset;
+            break;
+    }
     
     //unlock the entry
+    pthread_mutex_unlock(&myentry->entry_mutex);
     
     //return the current position
-    
+    return myentry->position;
 }
 
 
 //close file: return 0 if succeed, or -1 if fd is invalid
 int RSFS_close(int fd){
 
-    //sanity test of fd and whence    
+    //sanity test of fd and whence
+    if (fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used)
+    {
+        return -1;
+    }
 
     //free the open file entry
-    
+    free_open_file_entry(fd);
     return 0;
 }
 
