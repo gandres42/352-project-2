@@ -12,7 +12,7 @@ test: $(App)
 all: $(App)
 
 $(App): $(objects)
-	$(CC) -o $(App) $(objects) $(LDLIBS) -g
+	$(CC) -o $(App) $(objects) -g $(LDLIBS)
 
 $(objects): %.o: %.c 
 

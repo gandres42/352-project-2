@@ -36,7 +36,7 @@ int allocate_data_block(){
 void free_data_block(int block_number){
 
     pthread_mutex_lock(&data_bitmap_mutex);
-
+    
     data_bitmap[block_number]=0; //reset it to available
 
     pthread_mutex_unlock(&data_bitmap_mutex);

@@ -10,6 +10,14 @@
 
 pthread_mutex_t mutex_for_fs_stat;
 
+int mallocate_data_block()
+{
+    int block_num = allocate_data_block();
+    printf("%d\n", block_num);
+    data_blocks[block_num] = (void *)malloc(BLOCK_SIZE);
+    return block_num;
+}
+
 //initialize file system - should be called as the first thing in application code
 int RSFS_init(){
 
@@ -138,16 +146,10 @@ int RSFS_read(int fd, void *buf, int size)
     struct inode * mynode = &inodes[myentry->dir_entry->inode_number];
 
     //copy data from the data block(s) to buf and update current position
-    for (int i = 0; i < min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position); i++)
+    for (int i = 0; i < min(size, mynode->length - myentry->position); i++)
     {
         int block = (i + myentry->position)/NUM_DBLOCKS;
         int offset = (i + myentry->position) % NUM_DBLOCKS;
-        
-        if (mynode->block[block] == -1)
-        {
-            mynode->block[block] = (int *)malloc(NUM_DBLOCKS);
-        }
-        int * pos = mynode->block[block];
         memcpy(buf + i, mynode->block[block] + offset, 1);
     }
     int read_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
@@ -189,9 +191,9 @@ int RSFS_write(int fd, void *buf, int size)
         
         if (mynode->block[block] == -1)
         {
-            mynode->block[block] = (int *)malloc(NUM_DBLOCKS);
+            mynode->block[block] = mallocate_data_block();
         }
-        int * pos = mynode->block[block];
+        int * pos = data_blocks[mynode->block[block]];
         memcpy(mynode->block[block] + offset, buf + i, 1);
     }
     int size_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
@@ -273,18 +275,32 @@ int RSFS_close(int fd){
 int RSFS_delete(char *file_name){
 
     //find the dir_entry; if find, continue, otherwise, return -1. 
+    struct dir_entry * myentry = search_dir(file_name);
+    if (myentry == NULL)
+    {
+        return -1;
+    }
     
     //find the inode
-    
+    struct inode * mynode = &inodes[myentry->inode_number];
 
     //find the data blocks, free them in data-bitmap
-    
+    for (int i = 0; i < NUM_POINTER; i++)
+    {
+        if (mynode->block[i] >= 0)
+        {
+            printf("%d\n", mynode->block[i]);
+            free_data_block(mynode->block[i]);
+        }
+    }
+    mynode->length = 0;
 
     //free the inode in inode-bitmap
-    
-    
+    free_inode(mynode->length);
+
     //free the dir_entry
-    
+    // free(myentry);
+
 
     return 0;
 }
