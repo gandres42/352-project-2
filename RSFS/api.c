@@ -13,7 +13,6 @@ pthread_mutex_t mutex_for_fs_stat;
 int mallocate_data_block()
 {
     int block_num = allocate_data_block();
-    printf("%d\n", block_num);
     data_blocks[block_num] = (void *)malloc(BLOCK_SIZE);
     return block_num;
 }
@@ -150,7 +149,7 @@ int RSFS_read(int fd, void *buf, int size)
     {
         int block = (i + myentry->position)/NUM_DBLOCKS;
         int offset = (i + myentry->position) % NUM_DBLOCKS;
-        memcpy(buf + i, mynode->block[block] + offset, 1);
+        memcpy(buf + i, data_blocks[mynode->block[block]] + offset, 1);
     }
     int read_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
     myentry->position += read_delta;
@@ -189,12 +188,12 @@ int RSFS_write(int fd, void *buf, int size)
         int block = (i + myentry->position)/NUM_DBLOCKS;
         int offset = (i + myentry->position) % NUM_DBLOCKS;
         
-        if (mynode->block[block] == -1)
+        if (mynode->block[block] < 0)
         {
             mynode->block[block] = mallocate_data_block();
         }
-        int * pos = data_blocks[mynode->block[block]];
-        memcpy(mynode->block[block] + offset, buf + i, 1);
+        void * pos = data_blocks[mynode->block[block]];
+        memcpy(data_blocks[mynode->block[block]] + offset, buf + i, 1);
     }
     int size_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
     myentry->position += size_delta;
@@ -289,18 +288,18 @@ int RSFS_delete(char *file_name){
     {
         if (mynode->block[i] >= 0)
         {
-            printf("%d\n", mynode->block[i]);
+            free(data_blocks[mynode->block[i]]);
             free_data_block(mynode->block[i]);
+            mynode->block[i] = -1;
         }
     }
     mynode->length = 0;
 
     //free the inode in inode-bitmap
-    free_inode(mynode->length);
+    free_inode(myentry->inode_number);
 
     //free the dir_entry
-    // free(myentry);
-
+    delete_dir(file_name);
 
     return 0;
 }
