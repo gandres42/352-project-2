@@ -10,13 +10,6 @@
 
 pthread_mutex_t mutex_for_fs_stat;
 
-int mallocate_data_block()
-{
-    int block_num = allocate_data_block();
-    data_blocks[block_num] = (void *)malloc(BLOCK_SIZE);
-    return block_num;
-}
-
 //initialize file system - should be called as the first thing in application code
 int RSFS_init(){
 
@@ -103,8 +96,8 @@ int RSFS_create(char *file_name){
 
 //open a file with RSFS_RDONLY or RSFS_RDWR flags
 //return the file descriptor (i.e., the index of the open file entry in the open file table) if succeed, or -1 in case of error
-int RSFS_open(char *file_name, int access_flag){
-
+int RSFS_open(char *file_name, int access_flag)
+{
     //sanity test: access_flag should be either RSFS_RDONLY or RSFS_RDWR
     if (access_flag != RSFS_RDONLY && access_flag != RSFS_RDWR)
     {
@@ -147,8 +140,8 @@ int RSFS_read(int fd, void *buf, int size)
     //copy data from the data block(s) to buf and update current position
     for (int i = 0; i < min(size, mynode->length - myentry->position); i++)
     {
-        int block = (i + myentry->position)/NUM_DBLOCKS;
-        int offset = (i + myentry->position) % NUM_DBLOCKS;
+        int block = (i + myentry->position) / BLOCK_SIZE;
+        int offset = (i + myentry->position) % BLOCK_SIZE;
         memcpy(buf + i, data_blocks[mynode->block[block]] + offset, 1);
     }
     int read_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
@@ -183,21 +176,33 @@ int RSFS_write(int fd, void *buf, int size)
 
     //copy data from buf to the data block(s) and update current position;
     //new data blocks may be allocated for the file if needed
-    for (int i = 0; i < min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position); i++)
+    for (int i = 0; i < min(size, (NUM_POINTER * BLOCK_SIZE) - myentry->position); i++)
     {
-        int block = (i + myentry->position)/NUM_DBLOCKS;
-        int offset = (i + myentry->position) % NUM_DBLOCKS;
+        int block = (i + myentry->position) / BLOCK_SIZE;
+        int offset = (i + myentry->position) % BLOCK_SIZE;
         
+
         if (mynode->block[block] < 0)
         {
-            mynode->block[block] = mallocate_data_block();
+            int block_num = allocate_data_block();
+            if (block_num == -1)
+            {
+                // fs out of data blocks, return error
+                mynode->length += (i - (myentry->position - mynode->length));
+                myentry->position += i;
+                pthread_mutex_unlock(&myentry->entry_mutex);
+                return -1;
+            }
+            data_blocks[block_num] = (void *)malloc(BLOCK_SIZE);
+            mynode->block[block] = block_num;
         }
         void * pos = data_blocks[mynode->block[block]];
         memcpy(data_blocks[mynode->block[block]] + offset, buf + i, 1);
     }
+
     int size_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    mynode->length += size_delta - (myentry->position - mynode->length);
     myentry->position += size_delta;
-    mynode->length += size_delta;
 
     //unlock the open file entry
     pthread_mutex_unlock(&myentry->entry_mutex);
