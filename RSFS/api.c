@@ -144,7 +144,7 @@ int RSFS_read(int fd, void *buf, int size)
         int offset = (i + myentry->position) % BLOCK_SIZE;
         memcpy(buf + i, data_blocks[mynode->block[block]] + offset, 1);
     }
-    int read_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    int read_delta = min(size, mynode->length - myentry->position);
     myentry->position += read_delta;
     
     //unlock the open file entry
@@ -200,7 +200,7 @@ int RSFS_write(int fd, void *buf, int size)
         memcpy(data_blocks[mynode->block[block]] + offset, buf + i, 1);
     }
 
-    int size_delta = min(size, (NUM_POINTER * NUM_DBLOCKS) - myentry->position);
+    int size_delta = min(size, (NUM_POINTER * BLOCK_SIZE) - myentry->position);
     mynode->length += size_delta - (myentry->position - mynode->length);
     myentry->position += size_delta;
 
