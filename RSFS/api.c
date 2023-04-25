@@ -180,7 +180,6 @@ int RSFS_write(int fd, void *buf, int size)
     {
         int block = (i + myentry->position) / BLOCK_SIZE;
         int offset = (i + myentry->position) % BLOCK_SIZE;
-        
 
         if (mynode->block[block] < 0)
         {
