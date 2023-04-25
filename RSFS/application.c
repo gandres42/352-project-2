@@ -196,17 +196,6 @@ void test_basic(){
     printf("[test_basic] have written to each file.\n");
     RSFS_stat();
 
-    char * str_1 = "fuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuck";
-    //write to use up all data blocks
-    for(int i=0; i<NUM_INODES; i++){
-        // RSFS_fseek(fd[i],0,RSFS_SEEK_END);
-        for(int j=0; j<=i; j++){
-            int ret = RSFS_write(fd[i],str_1,strlen(str_1));
-            printf("%d\n", fd[i]);
-        }
-    }
-    printf("[test_basic] have over-written to each file.\n");
-    RSFS_stat();
 
     //close the files
     for(int i=0; i<NUM_INODES; i++){
@@ -215,16 +204,16 @@ void test_basic(){
             printf("[test_basic] fail to close file: %s.\n", str[i]);
         }
     }
-    // printf("[test_basic] have closed each file.\n");
-    // RSFS_stat();
+    printf("[test_basic] have closed each file.\n");
+    RSFS_stat();
 
     //open each file again
     for(int i=0; i<NUM_INODES; i++){
         fd[i] = RSFS_open(str[i], RSFS_RDONLY);
     }
 
-    // printf("[test_basic] have opened each file again.\n");
-    // RSFS_stat();
+    printf("[test_basic] have opened each file again.\n");
+    RSFS_stat();
 
 
     //read each file and then close it

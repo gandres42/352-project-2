@@ -57,66 +57,48 @@ Total Data Blocks:   32,  Used: 10,  Unused: 22
 Total iNode Blocks:   8,  Used: 8,  Unused: 0
 Total Opened Files:   8
 
-[test_basic] have closed each file.
+[test_basic] have over-written to each file.
 
 Current status of the file system:
 
         File Name    Length   iNode #
-           Alice         5         0
-             Bob         6         1
-         Charlie        21         2
-           David        20         3
-          Elaine        30         4
-           Frank        30         5
-          George        42         6
-           Harry        40         7
+           Alice       256         0
+             Bob       256         1
+         Charlie       256         2
+           David        64         3
+          Elaine        32         4
+           Frank        32         5
+          George        64         6
+           Harry        64         7
 
-Total Data Blocks:   32,  Used: 10,  Unused: 22
-Total iNode Blocks:   8,  Used: 8,  Unused: 0
-Total Opened Files:   0
-
-[test_basic] have opened each file again.
-
-Current status of the file system:
-
-        File Name    Length   iNode #
-           Alice         5         0
-             Bob         6         1
-         Charlie        21         2
-           David        20         3
-          Elaine        30         4
-           Frank        30         5
-          George        42         6
-           Harry        40         7
-
-Total Data Blocks:   32,  Used: 10,  Unused: 22
+Total Data Blocks:   32,  Used: 32,  Unused: 0
 Total iNode Blocks:   8,  Used: 8,  Unused: 0
 Total Opened Files:   8
 
-File 'Alice' content: Alice
-File 'Bob' content: BobBob
-File 'Charlie' content: CharlieCharlieCharlie
-File 'David' content: DavidDavidDavidDavid
-File 'Elaine' content: ElaineElaineElaineElaineElaine
-File 'Frank' content: FrankFrankFrankFrankFrankFrank
-File 'George' content: GeorgeGeorgeGeorgeGeorgeGeorgeGeorgeGeorge
-File 'Harry' content: HarryHarryHarryHarryHarryHarryHarryHarry
+File 'Alice' content: Alicefuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfu
+File 'Bob' content: BobBobfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckf
+File 'Charlie' content: CharlieCharlieCharliefuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfu
+File 'David' content: DavidDavidDavidDavidfuckfuckfuckfuckfuckfuckfuckfuckfuckfuckfuck
+File 'Elaine' content: ElaineElaineElaineElaineElainefu
+File 'Frank' content: FrankFrankFrankFrankFrankFrankfu
+File 'George' content: GeorgeGeorgeGeorgeGeorgeGeorgeGeorgeGeorgefuckfuckfuckfuckfuckfu
+File 'Harry' content: HarryHarryHarryHarryHarryHarryHarryHarryfuckfuckfuckfuckfuckfuck
 
 [test_basic] have read and then closed each file.
 
 Current status of the file system:
 
         File Name    Length   iNode #
-           Alice         5         0
-             Bob         6         1
-         Charlie        21         2
-           David        20         3
-          Elaine        30         4
-           Frank        30         5
-          George        42         6
-           Harry        40         7
+           Alice       256         0
+             Bob       256         1
+         Charlie       256         2
+           David        64         3
+          Elaine        32         4
+           Frank        32         5
+          George        64         6
+           Harry        64         7
 
-Total Data Blocks:   32,  Used: 10,  Unused: 22
+Total Data Blocks:   32,  Used: 32,  Unused: 0
 Total iNode Blocks:   8,  Used: 8,  Unused: 0
 Total Opened Files:   0
 
