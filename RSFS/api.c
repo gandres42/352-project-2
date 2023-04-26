@@ -273,26 +273,34 @@ int RSFS_close(int fd){
     return 0;
 }
 
-
 //delete file with provided file name: return 0 if succeed, or -1 in case of error
-int RSFS_delete(char *file_name){
-
+int RSFS_delete(char *file_name)
+{
     //find the dir_entry; if find, continue, otherwise, return -1. 
     struct dir_entry * myentry = search_dir(file_name);
     if (myentry == NULL)
     {
         return -1;
     }
+
+    // lock filesystem while we rip and tear
+    pthread_mutex_lock(&root_dir.mutex);
     
     // check if current file is already open, if so then return -1
     // done to stop users from deleting a file that is currently open
     pthread_mutex_lock(&open_file_table_mutex);
     for (int i = 0; i < NUM_OPEN_FILE; i++)
     {
-        if (open_file_table[i].used && open_file_table[i].dir_entry->inode_number == myentry->inode_number)
+        if (open_file_table[i].used)
         {
-            // file already open
-            return -1;
+            pthread_mutex_lock(&open_file_table[i].entry_mutex);
+            if (open_file_table[i].dir_entry->inode_number == myentry->inode_number)
+            {
+                // file already open
+                pthread_mutex_unlock(&open_file_table[i].entry_mutex);
+                return -1;
+            }
+            pthread_mutex_unlock(&open_file_table[i].entry_mutex);
         }
     }
     pthread_mutex_unlock(&open_file_table_mutex);
@@ -314,10 +322,13 @@ int RSFS_delete(char *file_name){
     mynode->length = 0;
     pthread_mutex_unlock(&data_bitmap_mutex);
 
+    // release filesystem lock
+    pthread_mutex_unlock(&root_dir.mutex);
+
     //free the inode in inode-bitmap
     free_inode(myentry->inode_number);
 
-    //free the dir_entry
+    //free the dir_entry 
     delete_dir(file_name);
 
     return 0;

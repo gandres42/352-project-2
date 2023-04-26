@@ -433,8 +433,8 @@ void main(){
         return; 
     }
 
-    // printf("\n\n-------------------Basic Test-------------------------\n\n");
-    // test_basic();
+    printf("\n\n-------------------Basic Test-------------------------\n\n");
+    test_basic();
 
     // optional: 
     // printf("\n\n--------Test for Concurrent Readers/Writers-----------\n\n");
