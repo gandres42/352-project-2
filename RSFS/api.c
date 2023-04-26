@@ -288,16 +288,18 @@ int RSFS_delete(char *file_name){
     struct inode * mynode = &inodes[myentry->inode_number];
 
     //find the data blocks, free them in data-bitmap
+    pthread_mutex_lock(&data_bitmap_mutex);
     for (int i = 0; i < NUM_POINTER; i++)
     {
-        if (mynode->block[i] >= 0)
+        if (mynode->block[i] >= 0 && data_bitmap[mynode->block[i]])
         {
             free(data_blocks[mynode->block[i]]);
-            free_data_block(mynode->block[i]);
+            data_bitmap[mynode->block[i]]=0;
             mynode->block[i] = -1;
         }
     }
     mynode->length = 0;
+    pthread_mutex_unlock(&data_bitmap_mutex);
 
     //free the inode in inode-bitmap
     free_inode(myentry->inode_number);

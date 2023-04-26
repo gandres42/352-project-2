@@ -234,9 +234,192 @@ void test_basic(){
     }
     printf("[test_basic] have deleted all files.\n");
     RSFS_stat();
-
 }
 
+
+void test_scenario1(){
+
+    //preparation
+    char str[9][16] = {"Alice", "Bob", "Charlie", "David",
+                        "Elaine", "Frank", "George", "Harry", "EXPECTED FAIL"
+                    };
+    
+    
+    //create NUM_INODES new files
+    for(int i=0; i<NUM_INODES + 1; i++){
+        printf("%d\b",i);
+        int ret = RSFS_create(str[i]);
+        if(ret!=0){
+            printf("[test_scenario1] fail to create file: %s.\n", str[i]);
+        }
+    }
+    printf("[test_scenario1] have called to create %d files.\n", NUM_INODES);
+    RSFS_stat();
+
+    //open each file
+    int fd[NUM_INODES + 1];
+    for(int i=0; i<NUM_INODES + 1; i++){
+        fd[i] = RSFS_open(str[i], RSFS_RDWR);
+        if(fd[i]<0){
+            printf("[test_scenario1] fail to open file: %s\n", str[i]);
+        }
+    }
+    printf("[test_scenario1] have called to open %d files.\n", NUM_INODES);
+    RSFS_stat();
+
+    //write to each file
+    for(int i=0; i<NUM_INODES + 1; i++){
+        // RSFS_fseek(fd[i],0,RSFS_SEEK_END);
+        for(int j=0; j<=i; j++){
+            int ret = RSFS_write(fd[i],str[i],strlen(str[i]));
+        }
+    }
+    printf("[test_scenario1] have written to each file.\n");
+    RSFS_stat();
+
+
+    //close the files
+    for(int i=0; i<NUM_INODES + 1; i++){
+        int ret=RSFS_close(fd[i]);
+        if(ret!=0){
+            printf("[test_scenario1] fail to close file: %s.\n", str[i]);
+        }
+    }
+    printf("[test_scenario1] have closed each file.\n");
+    RSFS_stat();
+
+    //open each file again
+    for(int i=0; i<NUM_INODES + 1; i++){
+        fd[i] = RSFS_open(str[i], RSFS_RDONLY);
+    }
+
+    printf("[test_scenario1] have opened each file again.\n");
+    RSFS_stat();
+
+
+    //read each file and then close it
+    for(int i=0; i<NUM_INODES + 1; i++){
+        char buf[NUM_POINTER*BLOCK_SIZE];
+        memset(buf,0,NUM_POINTER*BLOCK_SIZE);
+        RSFS_fseek(fd[i],0,RSFS_SEEK_SET);
+        RSFS_read(fd[i],buf,NUM_POINTER*BLOCK_SIZE);
+        printf("File '%s' content: %s\n", str[i], buf);
+        RSFS_close(fd[i]);
+    }
+    printf("\n[test_scenario1] have read and then closed each file.\n");
+    RSFS_stat();
+
+    //delete all files 
+    for(int i=0; i<NUM_INODES; i++){
+        int ret=RSFS_delete(str[i]);
+        if(ret!=0){
+            printf("[test_scenario1] fail to close file: %s.\n", str[i]);
+        }
+    }
+    printf("[test_scenario1] have deleted all files.\n");
+    RSFS_stat();
+}
+
+
+void test_scenario2(){
+
+    //preparation
+    char str[8][16] = {"Alice", "Bob", "Charlie", "David",
+                        "Elaine", "Frank", "George", "Harry"
+                    };
+    
+    
+    //create NUM_INODES new files
+    for(int i=0; i<NUM_INODES; i++){
+        printf("%d\b",i);
+        int ret = RSFS_create(str[i]);
+        if(ret!=0){
+            printf("[test_scenario2] fail to create file: %s.\n", str[i]);
+        }
+    }
+    printf("[test_scenario2] have called to create %d files.\n", NUM_INODES);
+    RSFS_stat();
+
+    //open each file
+    int fd[NUM_INODES];
+    for(int i=0; i<NUM_INODES; i++){
+        fd[i] = RSFS_open(str[i], RSFS_RDWR);
+        if(fd[i]<0){
+            printf("[test_scenario2] fail to open file: %s\n", str[i]);
+        }
+    }
+    printf("[test_scenario2] have called to open %d files.\n", NUM_INODES);
+    RSFS_stat();
+
+    //write to each file
+    for(int i=0; i<NUM_INODES; i++){
+        // RSFS_fseek(fd[i],0,RSFS_SEEK_END);
+        for(int j=0; j<=i; j++){
+            int ret = RSFS_write(fd[i],str[i],strlen(str[i]));
+        }
+    }
+
+    char *longstr = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    int ret;
+    ret = RSFS_write(fd[0],longstr,16);
+    printf("ret=%d\n",ret);
+    ret = RSFS_write(fd[1],longstr,strlen(longstr));
+    printf("ret=%d\n",ret);
+    ret = RSFS_write(fd[1],longstr,strlen(longstr));
+    printf("ret=%d\n",ret);
+    ret = RSFS_write(fd[2],longstr,strlen(longstr));
+    printf("ret=%d\n",ret);
+    ret = RSFS_write(fd[3],longstr,strlen(longstr));
+    printf("ret=%d\n",ret);
+    ret = RSFS_write(fd[4],longstr,strlen(longstr));
+    printf("ret=%d\n",ret);
+    ret = RSFS_write(fd[5],longstr,strlen(longstr));
+    printf("ret=%d\n",ret);
+
+
+
+    printf("[test_scenario2] have written to each file.\n");
+    RSFS_stat();
+
+
+    //close the files
+    for(int i=0; i<NUM_INODES; i++){
+        int ret=RSFS_close(fd[i]);
+        if(ret!=0){
+            printf("[test_scenario2] fail to close file: %s.\n", str[i]);
+        }
+    }
+    printf("[test_scenario2] have closed each file.\n");
+    RSFS_stat();
+
+    //open each file again
+    for(int i=0; i<NUM_INODES; i++){
+        fd[i] = RSFS_open(str[i], RSFS_RDONLY);
+    }
+
+    printf("[test_scenario2] have opened each file again.\n");
+    RSFS_stat();
+
+
+    //read each file and then close it
+    for(int i=0; i<NUM_INODES; i++){
+        char buf[NUM_POINTER*BLOCK_SIZE];
+        memset(buf,0,NUM_POINTER*BLOCK_SIZE);
+        RSFS_fseek(fd[i],0,RSFS_SEEK_SET);
+        RSFS_read(fd[i],buf,NUM_POINTER*BLOCK_SIZE);
+        printf("File '%s' content: %s\n", str[i], buf);
+        RSFS_close(fd[i]);
+    }
+    printf("\n[test_scenario2] have read and then closed each file.\n");
+    RSFS_stat();
+
+    //delete all files 
+    for(int i=0; i<NUM_INODES; i++){
+        RSFS_delete(str[i]);
+    }
+    printf("[test_scenario2] have deleted all files.\n");
+    RSFS_stat();
+}
 
 
 //test: reader-writer problem
@@ -250,10 +433,17 @@ void main(){
         return; 
     }
 
-    printf("\n\n-------------------Basic Test-------------------------\n\n");
-    test_basic();
+    // printf("\n\n-------------------Basic Test-------------------------\n\n");
+    // test_basic();
 
     // optional: 
     // printf("\n\n--------Test for Concurrent Readers/Writers-----------\n\n");
     // test_concurrency();
+
+    printf("\n\n-----------------Scenario 1 Test----------------------\n\n");
+    test_scenario1();
+
+    printf("\n\n-----------------Scenario 2 Test----------------------\n\n");
+    test_scenario2();   
+
 }
