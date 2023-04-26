@@ -264,7 +264,6 @@ void test_scenario1(){
             printf("[test_scenario1] fail to open file: %s\n", str[i]);
         }
     }
-    printf("[test_scenario1] have called to open %d files.\n", NUM_INODES);
     RSFS_stat();
 
     //write to each file

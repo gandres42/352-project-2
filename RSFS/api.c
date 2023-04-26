@@ -113,8 +113,6 @@ int RSFS_open(char *file_name, int access_flag)
     return allocate_open_file_entry(access_flag, mydir);
 }
 
-
-
 //read from file: read up to size bytes from the current position of the file of descriptor fd to buf;
 //read will not go beyond the end of the file; 
 //return the number of bytes actually read if succeed, or -1 in case of error.
@@ -322,18 +320,17 @@ int RSFS_delete(char *file_name)
     mynode->length = 0;
     pthread_mutex_unlock(&data_bitmap_mutex);
 
-    // release filesystem lock
-    pthread_mutex_unlock(&root_dir.mutex);
-
     //free the inode in inode-bitmap
     free_inode(myentry->inode_number);
+
+    // release filesystem lock
+    pthread_mutex_unlock(&root_dir.mutex);
 
     //free the dir_entry 
     delete_dir(file_name);
 
     return 0;
 }
-
 
 //print status of the file system
 void RSFS_stat(){
