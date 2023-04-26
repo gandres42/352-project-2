@@ -45,6 +45,7 @@ int RSFS_init(){
         pthread_mutex_init(&entry.entry_mutex,NULL);
         entry.position=0;
         entry.access_flag=-1;
+        entry.readers = 0;
     }
     pthread_mutex_init(&open_file_table_mutex,NULL); 
 
@@ -57,7 +58,6 @@ int RSFS_init(){
     //return 0 means success
     return 0;
 }
-
 
 //create file with the provided file name
 //if file does not exist, create the file and return 0;

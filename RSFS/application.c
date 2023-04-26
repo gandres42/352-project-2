@@ -138,7 +138,7 @@ void test_concurrency(){
     }
 
     //launch the threads
-    pthread_create(&writer_threads[0],NULL,writer_thread,&writer_arg[0]);
+    // pthread_create(&writer_threads[0],NULL,writer_thread,&writer_arg[0]);
     pthread_create(&reader_threads[0],NULL,reader_thread,&reader_arg[0]);
     pthread_create(&writer_threads[1],NULL,writer_thread,&writer_arg[1]);
     pthread_create(&reader_threads[1],NULL,reader_thread,&reader_arg[1]);
@@ -432,17 +432,16 @@ void main(){
         return; 
     }
 
-    printf("\n\n-------------------Basic Test-------------------------\n\n");
-    test_basic();
+    // printf("\n\n-------------------Basic Test-------------------------\n\n");
+    // test_basic();
 
     // optional: 
-    // printf("\n\n--------Test for Concurrent Readers/Writers-----------\n\n");
-    // test_concurrency();
+    printf("\n\n--------Test for Concurrent Readers/Writers-----------\n\n");
+    test_concurrency();
 
-    printf("\n\n-----------------Scenario 1 Test----------------------\n\n");
-    test_scenario1();
+    // printf("\n\n-----------------Scenario 1 Test----------------------\n\n");
+    // test_scenario1();
 
-    printf("\n\n-----------------Scenario 2 Test----------------------\n\n");
-    test_scenario2();   
-
+    // printf("\n\n-----------------Scenario 2 Test----------------------\n\n");
+    // test_scenario2();   
 }

@@ -71,6 +71,7 @@ struct open_file_entry{
     struct dir_entry *dir_entry; //pointer to the directory entry of the opened file
     int position; //current position of the file
     int access_flag; //RSFS_RDONLY or RSFS_RDWR - how the file can be accessed
+    int readers;
 };
 extern struct open_file_entry open_file_table[NUM_OPEN_FILE]; //global varialbe - open file table
 extern pthread_mutex_t open_file_table_mutex; //mutex to guard access to the table
