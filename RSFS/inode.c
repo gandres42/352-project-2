@@ -30,8 +30,6 @@ int allocate_inode()
             //initialize the inode
             inodes[i].length=0;
             for(int j=0; j<NUM_POINTER; j++) inodes[i].block[j]=-1;
-            inodes[i].rw_count = 0;
-            pthread_mutex_unlock(&inodes[i].rw_lock);
             break;
         }
     }
