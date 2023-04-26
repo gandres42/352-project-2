@@ -284,6 +284,19 @@ int RSFS_delete(char *file_name){
         return -1;
     }
     
+    // check if current file is already open, if so then return -1
+    // done to stop users from deleting a file that is currently open
+    pthread_mutex_lock(&open_file_table_mutex);
+    for (int i = 0; i < NUM_OPEN_FILE; i++)
+    {
+        if (open_file_table[i].used && open_file_table[i].dir_entry->inode_number == myentry->inode_number)
+        {
+            // file already open
+            return -1;
+        }
+    }
+    pthread_mutex_unlock(&open_file_table_mutex);
+
     //find the inode
     struct inode * mynode = &inodes[myentry->inode_number];
 
