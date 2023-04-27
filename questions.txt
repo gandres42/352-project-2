@@ -1,0 +1,2 @@
+expected behavior for over-creation?  -1 inodes concerning.
+null termination on printing bytes a problem?  Solution on Piazza said it should be done at print time, so not something we shoud touch?  Also, what about completely full buffers?
