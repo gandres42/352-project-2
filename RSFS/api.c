@@ -82,6 +82,7 @@ int RSFS_create(char *file_name){
         int inode_number = allocate_inode();
         if(inode_number<0){
             printf("[create] fail to allocate an inode.\n");
+            delete_dir(file_name);
             return -2;
         } 
         if(DEBUG) printf("[create] allocate inode with number:%d.\n", inode_number);
@@ -107,6 +108,13 @@ int RSFS_open(char *file_name, int access_flag)
     
     //find dir_entry matching file_name
     struct dir_entry * mydir = search_dir(file_name);
+    
+    // protect against non-existent filenames
+    if (!mydir)
+    {
+        return -1;
+    }
+
     struct inode * mynode = &inodes[mydir->inode_number];
     pthread_mutex_lock(&mynode->rw_lock);
     if (mynode->readers >= 0 && access_flag == RSFS_RDONLY)
