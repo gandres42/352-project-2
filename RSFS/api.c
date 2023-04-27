@@ -58,7 +58,6 @@ int RSFS_init(){
     return 0;
 }
 
-
 //create file with the provided file name
 //if file does not exist, create the file and return 0;
 //if file_name already exists, return -1; 
@@ -103,14 +102,26 @@ int RSFS_open(char *file_name, int access_flag)
     {
         return -1;
     }
+
+    int fd = -1;
     
     //find dir_entry matching file_name
     struct dir_entry * mydir = search_dir(file_name);
-    
-    //find the corresponding inode
-    //find an unused open-file-entry in open-file-table and use it
-    //return the file descriptor (i.e., the index of the open file entry in the open file table)
-    return allocate_open_file_entry(access_flag, mydir);
+    struct inode * mynode = &inodes[mydir->inode_number];
+    pthread_mutex_lock(&mynode->rw_lock);
+    if (mynode->readers >= 0 && access_flag == RSFS_RDONLY)
+    {
+        mynode->readers++;
+        fd = allocate_open_file_entry(access_flag, mydir);
+    }
+    else if (mynode->readers == 0 && access_flag == RSFS_RDWR)
+    {
+        mynode->readers = -1;
+        fd = allocate_open_file_entry(access_flag, mydir);
+    }
+
+    pthread_mutex_unlock(&mynode->rw_lock);
+    return fd;
 }
 
 //read from file: read up to size bytes from the current position of the file of descriptor fd to buf;
@@ -265,6 +276,18 @@ int RSFS_close(int fd){
     {
         return -1;
     }
+
+    struct inode * mynode = &inodes[open_file_table[fd].dir_entry->inode_number];
+    pthread_mutex_lock(&mynode->rw_lock);
+    if (mynode->readers > 0)
+    {
+        mynode->readers--;
+    }
+    else if (mynode->readers == -1)
+    {
+        mynode->readers = 0;
+    }
+    pthread_mutex_unlock(&mynode->rw_lock);
 
     //free the open file entry
     free_open_file_entry(fd);

@@ -49,6 +49,8 @@ struct inode {
     //you may need to add some more fields to support concurrent reading 
     //and exclusive writing; 
     //recall the solution of reader/writer's problem discussed in class
+    pthread_mutex_t rw_lock;
+    int readers;
 };
 extern struct inode inodes[NUM_INODES]; //global variable of inodes
 extern pthread_mutex_t inodes_mutex; //mutex to guard mutually-exclusive access of inodes

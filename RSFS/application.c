@@ -432,17 +432,21 @@ void main(){
         return; 
     }
 
-    printf("\n\n-------------------Basic Test-------------------------\n\n");
-    test_basic();
+    // printf("\n\n-------------------Basic Test-------------------------\n\n");
+    // test_basic();
 
     // optional: 
-    // printf("\n\n--------Test for Concurrent Readers/Writers-----------\n\n");
-    // test_concurrency();
+    printf("\n\n--------Test for Concurrent Readers/Writers-----------\n\n");
+    test_concurrency();
 
-    printf("\n\n-----------------Scenario 1 Test----------------------\n\n");
-    test_scenario1();
+    // printf("\n\n-----------------Scenario 1 Test----------------------\n\n");
+    // test_scenario1();
 
-    printf("\n\n-----------------Scenario 2 Test----------------------\n\n");
-    test_scenario2();   
+    // printf("\n\n-----------------Scenario 2 Test----------------------\n\n");
+    // test_scenario2();
 
+    for (int i = 0; i < NUM_INODES; i++)
+    {
+        printf("inode %d: %d\n", i, inodes[i].readers);
+    }
 }

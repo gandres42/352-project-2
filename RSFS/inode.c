@@ -29,6 +29,7 @@ int allocate_inode()
             
             //initialize the inode
             inodes[i].length=0;
+            inodes[i].readers = 0;
             for(int j=0; j<NUM_POINTER; j++) inodes[i].block[j]=-1;
             break;
         }
