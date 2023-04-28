@@ -62,6 +62,7 @@ int RSFS_init(){
 //if file does not exist, create the file and return 0;
 //if file_name already exists, return -1; 
 //otherwise, return -2.
+// changed to add protection against creating more than 8 files
 int RSFS_create(char *file_name){
 
     //search root_dir for dir_entry matching provided file_name
@@ -115,7 +116,13 @@ int RSFS_open(char *file_name, int access_flag)
         return -1;
     }
 
+    // grab inode mydir points to
+    pthread_mutex_lock(&inodes_mutex);
     struct inode * mynode = &inodes[mydir->inode_number];
+    pthread_mutex_unlock(&inodes_mutex);
+
+    // check if permissions are right to open the file
+    // if permission granted, returns fd of new open file entry, else -1
     pthread_mutex_lock(&mynode->rw_lock);
     if (mynode->readers >= 0 && access_flag == RSFS_RDONLY)
     {
@@ -157,17 +164,20 @@ int RSFS_read(int fd, void *buf, int size)
     //copy data from the data block(s) to buf and update current position
     for (int i = 0; i < min(size, mynode->length - myentry->position); i++)
     {
+        // data block allocated in linear order in inode data_blocks
         int block = (i + myentry->position) / BLOCK_SIZE;
         int offset = (i + myentry->position) % BLOCK_SIZE;
         memcpy(buf + i, data_blocks[mynode->block[block]] + offset, 1);
     }
+
+    // update position with number of bytes we read
     int read_delta = min(size, mynode->length - myentry->position);
     myentry->position += read_delta;
     
     //unlock the open file entry
     pthread_mutex_unlock(&myentry->entry_mutex);
 
-    //return the current position
+    //return the number of bytes read
     return read_delta;
 }
 
@@ -201,6 +211,7 @@ int RSFS_write(int fd, void *buf, int size)
         if (mynode->block[block] < 0)
         {
             int block_num = allocate_data_block();
+            // if the block has not been allocated, then allocate it
             if (block_num == -1)
             {
                 // fs out of data blocks, return error
@@ -209,6 +220,7 @@ int RSFS_write(int fd, void *buf, int size)
                 pthread_mutex_unlock(&myentry->entry_mutex);
                 return -1;
             }
+            // puts pointer in data_blocks array, freed when file is deleted
             data_blocks[block_num] = (void *)malloc(BLOCK_SIZE);
             mynode->block[block] = block_num;
         }
@@ -216,6 +228,7 @@ int RSFS_write(int fd, void *buf, int size)
         memcpy(data_blocks[mynode->block[block]] + offset, buf + i, 1);
     }
 
+    // update length and position, with length depending on where the initial write position was
     int size_delta = min(size, (NUM_POINTER * BLOCK_SIZE) - myentry->position);
     mynode->length += size_delta - (myentry->position - mynode->length);
     myentry->position += size_delta;
@@ -279,14 +292,19 @@ int RSFS_fseek(int fd, int offset, int whence){
 //close file: return 0 if succeed, or -1 if fd is invalid
 int RSFS_close(int fd){
 
-    //sanity test of fd and whence
+    //sanity test of fd and whence, check if open file pointer is valid
     if (fd < 0 || fd >= NUM_OPEN_FILE || !open_file_table[fd].used)
     {
         return -1;
     }
 
+    pthread_mutex_lock(&inodes_mutex);
     struct inode * mynode = &inodes[open_file_table[fd].dir_entry->inode_number];
+    pthread_mutex_unlock(&inodes_mutex);
     pthread_mutex_lock(&mynode->rw_lock);
+    // if readers > 0, then there are multiple read only members
+    // if readers == -1, there is currently one rw member
+    // if there is only one read-only or a rw, then decrement or reset to 0
     if (mynode->readers > 0)
     {
         mynode->readers--;
@@ -318,6 +336,9 @@ int RSFS_delete(char *file_name)
     // check if current file is already open, if so then return -1
     // done to stop users from deleting a file that is currently open
     pthread_mutex_lock(&open_file_table_mutex);
+
+    // run through open_file_table to check if anyone else has same inode open
+    // if so, then leave it and return -1
     for (int i = 0; i < NUM_OPEN_FILE; i++)
     {
         if (open_file_table[i].used)
@@ -338,6 +359,7 @@ int RSFS_delete(char *file_name)
     struct inode * mynode = &inodes[myentry->inode_number];
 
     //find the data blocks, free them in data-bitmap
+    // free the pointers in data_blocks as well
     pthread_mutex_lock(&data_bitmap_mutex);
     for (int i = 0; i < NUM_POINTER; i++)
     {

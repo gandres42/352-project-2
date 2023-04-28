@@ -1,0 +1,14 @@
+Ridiculously Simple File System Implementation - Gavin Andres
+-------------------------------------------------------------------------------
+RUNNING: To test the RSFS, run
+    make all
+    ./app
+This will run tests for normal use, normal concurrent use, and edge cases of
+creating too many files, and writing too many bytes to files
+
+CHANGES:
+- def.h: variables for concurrency added to inode struct
+- api.c: compelete missing functions per assignment spec, as well as a slight
+  change to RSFS_create, fixing a problem where creating more than 8 files
+  would result in a directory entry being made with inode number -1
+- application.c: additional test cases added

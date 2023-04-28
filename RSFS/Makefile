@@ -4,15 +4,10 @@ LDLIBS = -lpthread
 objects = api.o application.o data_block.o dir.o inode.o open_file_table.o
 App = app
 
-test: $(App)
-	$(CC) -o $(App) $(objects) $(LDLIBS)
-	./app | tee output.txt
-	./test
-
 all: $(App)
 
 $(App): $(objects)
-	$(CC) -o $(App) $(objects) -g $(LDLIBS)
+	$(CC) -o $(App) $(objects) $(LDLIBS)
 
 $(objects): %.o: %.c 
 
